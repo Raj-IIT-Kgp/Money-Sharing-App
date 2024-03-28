@@ -18,23 +18,24 @@ router.get("/balance", authMiddleware, async (req, res) => {
 
 router.post("/transfer", authMiddleware, async (req, res) => {
     const session = await mongoose.startSession();
-
     session.startTransaction();
     const { amount, to } = req.body;
-
-
-
 
     // Fetch the accounts within the transaction
     const account = await Account.findOne({ userId: req.userId }).session(session);
 
-    if (!account || account.balance < amount || amount < 0) {
+    if (!account || account.balance < amount) {
         await session.abortTransaction();
         return res.status(400).json({
             message: "Insufficient balance"
         });
     }
-
+    if (amount < 0) {
+        await session.abortTransaction();
+        return res.status(400).json({
+            message: "abe ma**chod kar kya raha hai"
+        });
+    }
     const toAccount = await Account.findOne({ userId: to }).session(session);
 
     if (!toAccount) {
@@ -43,7 +44,6 @@ router.post("/transfer", authMiddleware, async (req, res) => {
             message: "Invalid account"
         });
     }
-
 
     // Perform the transfer
     await Account.updateOne({ userId: req.userId }, { $inc: { balance: -amount } }).session(session);
@@ -89,8 +89,8 @@ router.get("/transactions", authMiddleware, async (req, res) => {
 
         await Transaction.deleteMany({ date: { $lt: oneWeekAgo } });
     }
-// Run the function once a day
-    setInterval(deleteOldTransactions, 24 * 60 * 60 * 1000);
+    await deleteOldTransactions();
     res.json(transactions);
+
 });
 module.exports = router;

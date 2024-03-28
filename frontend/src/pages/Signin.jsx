@@ -33,7 +33,7 @@ export const Signin = () => {
                             alert(response.data.message);
                             navigate("/dashboard")
                         }catch(e){
-                            alert("Invalid credentials or some problem occurred. Please try again.")
+                            alert("Not able to sign in")
                         }
                     }} label={"Sign in"} />
                 </div>

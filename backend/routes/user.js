@@ -7,7 +7,10 @@ const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config");
 const  { authMiddleware } = require("../middleware");
 
+
+
 const signupBody = zod.object({
+
     username: zod.string().email(),
     firstName: zod.string(),
     lastName: zod.string(),
@@ -60,8 +63,8 @@ router.post("/signup", async (req, res) => {
 
 
 const signinBody = zod.object({
-    username: zod.string().email(),
-    password: zod.string()
+    username: zod.string().email().nonempty({message : "Email is required"}),
+    password: zod.string().nonempty({message : "Password is required"})
 })
 
 router.post("/signin", async (req, res) => {
@@ -97,7 +100,6 @@ router.post("/signin", async (req, res) => {
         }
     }
     catch (e) {
-
         res.status(411).json({
             message: "Error while logging in"
         })

@@ -45,13 +45,10 @@ export const SendMoney = () => {
                                 })
                                 alert(response.data.message);
                             } catch (error) {
-                                if (error.response && error.response.status === 400) {
-                                    alert(error.response.data.message);
-                                } else {
                                     alert('An error occurred while trying to send money');
                                 }
                             }
-                        }}
+                        }
                         className="w-full h-10 px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-500"
                     >
                         Initiate Transfer
