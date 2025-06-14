@@ -9,7 +9,7 @@ export const WebSocketProvider = ({ children }) => {
     useEffect(() => {
         console.log("🔌 Connecting to WebSocket...");
         try {
-            ws.current = new WebSocket("ws://127.0.0.1:3000/ws");
+            ws.current = new WebSocket("wss://money-sharing-app.onrender.com/ws");
 
             ws.current.onopen = () => {
                 console.log("✅ WebSocket connected");
