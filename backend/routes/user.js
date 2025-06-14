@@ -131,7 +131,7 @@ router.get("/info", authMiddleware, async (req, res) => {
         _id: req.userId
     });
     res.json({
-      firstName : user.firstName,
+      user : user
     })
 });
 
@@ -157,12 +157,7 @@ router.get("/bulk", authMiddleware, async (req, res) => {
     })
 
     res.json({
-        user: users.map(user => ({
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            _id: user._id
-        }))
+       users : users
     })
 })
 
