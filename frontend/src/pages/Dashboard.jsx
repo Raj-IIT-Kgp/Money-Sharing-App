@@ -13,7 +13,8 @@ export const Dashboard = () => {
         const fetchBalance = async () => {
             const token = localStorage.getItem("token");
             try {
-                const response = await fetch("http://localhost:3000/api/v1/account/balance", {
+                const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL;
+                const response = await fetch(`${backendUrl}/account/balance`, {
                     headers: {
                         Authorization: "Bearer " + token
                     }
@@ -32,29 +33,27 @@ export const Dashboard = () => {
     }, []);
 
     const handleLoginToAnotherAccount = () => {
-        // Navigate to the sign-in page
         navigate("/signin");
     };
 
     return (
-        <div className="bg-gray-100 min-h-screen">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
             <Appbar />
-            <div className="container mx-auto mt-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white shadow-md rounded-md p-6">
-                        <h2 className="text-lg font-semibold mb-4">Account Balance</h2>
+            <div className="container mx-auto mt-10 px-4">
+                <h1 className="text-3xl font-bold text-center text-indigo-700 mb-10 drop-shadow">
+                    Dashboard
+                </h1>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="bg-white shadow-lg rounded-xl p-8 transition-transform hover:scale-105">
+                        <h2 className="text-xl font-semibold mb-6 text-indigo-600">Account Balance</h2>
                         <Balance value={balance} />
                     </div>
-                    <div className="bg-white shadow-md rounded-md p-6">
-                        <h2 className="text-lg font-semibold mb-4">Users</h2>
+                    <div className="bg-white shadow-lg rounded-xl p-8 transition-transform hover:scale-105">
+                        <h2 className="text-xl font-semibold mb-6 text-indigo-600">Users</h2>
                         <Users />
                     </div>
                 </div>
-                <div className="mt-8 flex justify-between">
-                    <Button onClick={() => navigate("/update")} label="Update Profile" />
-                    <Button onClick={() => navigate("/transaction")} label="Transaction History" />
-                    <Button onClick={handleLoginToAnotherAccount} label="Log in to Another Account" />
-                </div>
+
             </div>
         </div>
     );

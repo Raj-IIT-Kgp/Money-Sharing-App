@@ -1,41 +1,94 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { InputBox } from "../components/InputBox.jsx";
 import { useNavigate } from "react-router-dom";
+import { FaCamera } from "react-icons/fa"; // install react-icons if not present
+import { Appbar } from "../components/Appbar.jsx"; // Import Appbar
+import imageCompression from "browser-image-compression";
 
 export const Update = () => {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [password, setPassword] = useState("");
+    const [profileImage, setProfileImage] = useState("");
     const navigate = useNavigate();
+    const fileInputRef = useRef();
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const token = localStorage.getItem("token");
+            const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL;
+            try {
+                const response = await axios.get(`${backendUrl}/user/info`, {
+                    headers: { Authorization: "Bearer " + token }
+                });
+                console.log("User info response:", response.data); // Debug
+                if (response.data && response.data.user) {
+                    setFirstName(response.data.user.firstName || "");
+                    setLastName(response.data.user.lastName || "");
+                    setProfileImage(response.data.user.profileImage || "");
+                    setPassword((response.data.user.password || ""));
+                } else {
+                    alert("User data not found in response");
+                }
+            } catch (e) {
+                alert("Failed to fetch user info");
+                console.error(e);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    const handleImageChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Compress the image
+            const options = {
+                maxSizeMB: 0.1, // Target size (e.g., 100KB)
+                maxWidthOrHeight: 300, // Resize to max 300px
+                useWebWorker: true
+            };
+            try {
+                const compressedFile = await imageCompression(file, options);
+                const reader = new FileReader();
+                reader.onloadend = () => setProfileImage(reader.result);
+                reader.readAsDataURL(compressedFile);
+            } catch (error) {
+                alert("Image compression failed");
+            }
+        }
+    };
+
+    const handleCameraClick = () => {
+        fileInputRef.current.click();
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!firstName && !lastName && !password) {
+        if (!firstName && !lastName && !password && !profileImage) {
             alert("Please enter at least one field to update");
             return;
         }
         const token = localStorage.getItem("token");
+        const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL;
         try {
-            const response = await axios.put("http://localhost:3000/api/v1/user/update", {
-                firstName,
-                lastName,
-                password
-            }, {
-                headers: {
-                    Authorization: "Bearer " + token
-                }
-            });
+            const response = await axios.put(
+                `${backendUrl}/user/update`,
+                { firstName, lastName, password, profileImage },
+                { headers: { Authorization: "Bearer " + token } }
+            );
             if (response.data.message) {
                 alert(response.data.message);
+                navigate("/dashboard"); // Navigate after success
             }
-
-        } catch (error) {
+        } catch {
             alert("Error while updating information");
         }
     };
 
     return (
+        <div>
+            <Appbar />
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
             <div className="max-w-md w-full p-6 bg-white rounded shadow-xl">
                 <h2 className="text-2xl font-bold mb-4">Update Profile</h2>
@@ -46,7 +99,7 @@ export const Update = () => {
                             type="text"
                             id="firstName"
                             value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
+                            onChange={e => setFirstName(e.target.value)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                         />
                     </div>
@@ -56,7 +109,7 @@ export const Update = () => {
                             type="text"
                             id="lastName"
                             value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
+                            onChange={e => setLastName(e.target.value)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                         />
                     </div>
@@ -66,9 +119,35 @@ export const Update = () => {
                             type="password"
                             id="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={e => setPassword(e.target.value)}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                         />
+                    </div>
+                    <div>
+                        <label className="block text-gray-700">Profile Image:</label>
+                        <div className="relative w-20 h-20 mt-2">
+                            <img
+                                src={profileImage}
+                                alt="Preview"
+                                className="w-20 h-20 object-cover rounded-full border"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleCameraClick}
+                                className="absolute bottom-0 right-0 bg-white rounded-full p-1 border shadow"
+                                style={{ lineHeight: 0 }}
+                                tabIndex={-1}
+                            >
+                                <FaCamera size={18} />
+                            </button>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                ref={fileInputRef}
+                                onChange={handleImageChange}
+                                className="hidden"
+                            />
+                        </div>
                     </div>
                     <button
                         type="submit"
@@ -84,6 +163,7 @@ export const Update = () => {
                     Go Back
                 </button>
             </div>
+        </div>
         </div>
     );
 };

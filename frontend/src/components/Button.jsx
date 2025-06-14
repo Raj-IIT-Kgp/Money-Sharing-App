@@ -1,12 +1,9 @@
-
-export function Button({ label, onClick, className }) {
-    return (
-        <button
-            onClick={onClick}
-            type="button"
-            className={`w-full text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 ${className}`}
-        >
-            {label}
-        </button>
-    );
-}
+export const Button = ({ onClick, label, style = {}, className = "" }) => (
+    <button
+        onClick={onClick}
+        style={{ ...style, width: "auto" }} // Ensure width is auto
+        className={className}
+    >
+        {label}
+    </button>
+);

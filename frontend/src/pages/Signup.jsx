@@ -34,7 +34,8 @@ export const Signup = () => {
                 <div className="pt-4">
                     <Button onClick={async () => {
                         try {
-                            const response = await axios.post("http://localhost:3000/api/v1/user/signup", {
+                            const backendUrl = import.meta.env.VITE_REACT_APP_BACKEND_URL || "http://localhost:3000/api/v1";
+                            const response = await axios.post(`${backendUrl}/user/signup`, {
                                 username,
                                 firstName,
                                 lastName,
