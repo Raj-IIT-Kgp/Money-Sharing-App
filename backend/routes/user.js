@@ -12,10 +12,11 @@ const otpStore = {};
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-        user: "your.email@gmail.com", // replace with your email
-        pass: "your_app_password"     // replace with your app password (not your email password)
+        user: "rajm97985@gmail.com",
+        pass: "xqizlrnsjfvznvyj"
     }
 });
+
 
 const signupBody = zod.object({
     username: zod.string().email(),
