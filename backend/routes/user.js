@@ -6,8 +6,16 @@ const { User, Account } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config");
 const  { authMiddleware } = require("../middleware");
-
-
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+const otpStore = {};
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: "your.email@gmail.com", // replace with your email
+        pass: "your_app_password"     // replace with your app password (not your email password)
+    }
+});
 
 const signupBody = zod.object({
     username: zod.string().email(),
@@ -65,6 +73,45 @@ const signinBody = zod.object({
     username: zod.string().email().nonempty({message : "Email is required"}),
     password: zod.string().nonempty({message : "Password is required"})
 })
+
+
+router.post("/signin/request-otp", async (req, res) => {
+    const { username } = req.body;
+    const user = await User.findOne({ username });
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[username] = { otp, expires: Date.now() + 5 * 60 * 1000 }; // 5 min expiry
+
+    // Send OTP via email
+    await transporter.sendMail({
+        from: "your.email@gmail.com",
+        to: username,
+        subject: "Your OTP Code",
+        text: `Your OTP code is: ${otp}`
+    });
+
+    res.json({ message: "OTP sent to your email" });
+});
+
+// Route to verify OTP and sign in
+router.post("/signin/verify-otp", async (req, res) => {
+    const { username, otp } = req.body;
+    const record = otpStore[username];
+    if (!record || record.otp !== otp || Date.now() > record.expires) {
+        return res.status(401).json({ message: "Invalid or expired OTP" });
+    }
+    const user = await User.findOne({ username });
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    delete otpStore[username];
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET);
+    res.json({ message: "Logged in with OTP", token });
+});
+
+
 
 router.post("/signin", async (req, res) => {
     try {
